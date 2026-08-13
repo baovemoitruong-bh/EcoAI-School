@@ -20,23 +20,28 @@ async function loadAIModel() {
 }
 loadAIModel();
 
-/// 2. BAT / TAT CAMERA (TỰ ĐỘNG CHỌN CAMERA SAU TRÊN ĐIỆN THOẠI)
+// 2. BẬT / TẮT CAMERA (TỰ ĐỘNG CHỌN CAMERA SAU TRÊN ĐIỆN THOẠI)
 async function toggleWebcam() {
     if (isWebcamActive) {
+        // TẮT CAMERA
         const stream = video.srcObject;
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
         }
+        video.srcObject = null;
         video.classList.add('hidden');
-        placeholder.classList.remove('hidden');
+        if (placeholder) placeholder.classList.remove('hidden');
         isWebcamActive = false;
-        document.getElementById('btnWebcam').querySelector('span').innerText = "Mở Camera";
-        overlay.classList.add('hidden');
+        
+        // Đổi chữ nút bấm
+        const btnSpan = document.querySelector('#btnWebcam span') || document.getElementById('btnWebcam');
+        if (btnSpan) btnSpan.innerText = "Mở Camera";
+        if (overlay) overlay.classList.add('hidden');
     } else {
+        // BẬT CAMERA
         try {
-            imgPreview.classList.add('hidden');
-            
-            // Cấu hình ưu tiên Camera sau (facingMode: environment)
+            if (imgPreview) imgPreview.classList.add('hidden');
+
             const constraints = {
                 video: {
                     facingMode: { ideal: "environment" }
@@ -45,13 +50,21 @@ async function toggleWebcam() {
 
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
             video.srcObject = stream;
+            
+            // BẮT BUỘC: Phát video ngay lập tức (Rất quan trọng trên điện thoại)
+            await video.play(); 
+
             video.classList.remove('hidden');
-            placeholder.classList.add('hidden');
+            if (placeholder) placeholder.classList.add('hidden');
+            
+            // Đổi trạng thái và chữ trên nút
             isWebcamActive = true;
-            document.getElementById('btnWebcam').querySelector('span').innerText = "Tắt Camera";
-        } catch (err) {
-            alert("Không thể mở Camera! Nếu dùng điện thoại, hãy đảm bảo bạn chọn đúng địa chỉ IP Wi-Fi hoặc dùng nút Tải/Chụp Ảnh nhé.");
-            console.error(err);
+            const btnSpan = document.querySelector('#btnWebcam span') || document.getElementById('btnWebcam');
+            if (btnSpan) btnSpan.innerText = "Tắt Camera";
+
+        } catch (error) {
+            console.error("Lỗi mở camera:", error);
+            alert("Không thể mở Camera. Vui lòng kiểm tra quyền truy cập Camera trên trình duyệt!\nLỗi: " + error.message);
         }
     }
 }
