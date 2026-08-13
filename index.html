@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoAI School - Hệ Thống AI Vision & Nudge Học Đường</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- TensorFlow.js & MobileNet AI Model -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- File CSS riêng -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- NAVIGATION BAR -->
+    <nav class="sticky top-0 z-50 glass-card border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-emerald-600 rounded-xl text-white shadow-lg shadow-emerald-200">
+                        <i data-lucide="leaf" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-extrabold bg-gradient-to-r from-emerald-700 to-teal-600 bg-clip-text text-transparent">EcoAI School</span>
+                        <span class="hidden sm:inline-block ml-2 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">KHKT 2026</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span id="aiModelStatus">Đang tải mô hình AI...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        <!-- HERO BANNER -->
+        <div class="gradient-bg rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+            <div class="relative z-10 max-w-2xl">
+                <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold mb-4 text-emerald-50">
+                    <i data-lucide="cpu" class="w-3.5 h-3.5"></i> Computer Vision Real-Time
+                </div>
+                <h1 class="text-2xl sm:text-4xl font-extrabold leading-tight mb-3">
+                    Hệ Thống Phân Loại Rác AI Real-Time
+                </h1>
+                <p class="text-emerald-100 text-sm sm:text-base leading-relaxed mb-6">
+                    Mô hình Trí tuệ Nhân tạo trực tiếp nhận diện rác thải qua Webcam hoặc Hình ảnh tải lên, tự động tính điểm thi đua và đưa ra thông điệp Nudge định hình hành vi.
+                </p>
+            </div>
+        </div>
+
+        <!-- AI VISION SECTION -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- LEFT: CAMERA / UPLOAD CONTROL -->
+            <div class="glass-card rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="camera" class="w-5 h-5 text-emerald-600"></i>
+                            Quét AI Vision Thật
+                        </h2>
+                        <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">TensorFlow.js</span>
+                    </div>
+
+                    <div class="relative bg-slate-900 rounded-xl overflow-hidden aspect-video flex items-center justify-center border-2 border-slate-700 shadow-inner group">
+                        <video id="webcam" autoplay playsinline class="w-full h-full object-cover hidden"></video>
+                        <img id="imagePreview" class="w-full h-full object-cover hidden" alt="Garbage Preview">
+                        
+                        <div id="placeholderText" class="text-center p-4 text-slate-400">
+                            <i data-lucide="scan-line" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+                            <p class="text-xs">Bật Camera hoặc Tải ảnh rác lên để AI quét</p>
+                        </div>
+
+                        <div id="aiOverlay" class="absolute inset-0 border-2 border-emerald-400/80 m-3 rounded-lg pointer-events-none hidden flex-col justify-between p-2">
+                            <div class="flex justify-between text-[10px] text-emerald-400 font-mono bg-black/40 px-2 py-0.5 rounded">
+                                <span>[AI PROCESSING]</span>
+                                <span id="confidenceText">CONF: 0%</span>
+                            </div>
+                            <div class="self-center bg-emerald-600/90 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5">
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                                <span id="detectedLabel">Đang quét...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 space-y-2">
+                    <button id="btnWebcam" onclick="toggleWebcam()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow">
+                        <i data-lucide="video" class="w-4 h-4"></i>
+                        <span>Mở Camera</span>
+                    </button>
+
+                    <label class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow cursor-pointer text-center">
+                        <i data-lucide="upload" class="w-4 h-4"></i>
+                        <span>Chụp / Tải Ảnh Rác</span>
+                        <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileUpload(event)">
+                    </label>
+
+                    <button id="btnScan" onclick="classifyCurrentInput()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <span>Phân Tích Bằng AI</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- RIGHT: NUDGE RESPONSE & CHART -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="glass-card rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="message-square-heart" class="w-5 h-5 text-emerald-600"></i>
+                            Phản Hồi AI & Adaptive Nudge Real-Time
+                        </h2>
+                        <span class="text-xs bg-amber-100 text-amber-800 font-semibold px-2.5 py-1 rounded-full">AI Output</span>
+                    </div>
+
+                    <div class="p-5 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200/80 space-y-3">
+                        <div class="flex items-center justify-between border-b border-emerald-200/60 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="font-extrabold text-slate-800 text-base" id="resCategory">Chưa có dữ liệu quét</span>
+                                <span class="text-xs bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-md font-bold" id="resPoints">+0 Điểm Xanh</span>
+                            </div>
+                            <span class="text-xs font-semibold text-emerald-700" id="resRecyclable">--</span>
+                        </div>
+
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Thông điệp Thúc đẩy (Nudge):</p>
+                            <p class="text-slate-700 text-sm font-medium leading-relaxed italic" id="resNudge">
+                                "Hãy mở Camera hoặc tải một tấm ảnh chứa chai nhựa, hộp giấy lên để AI phân tích hành vi của bạn nhé!"
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Thống Kê Nhận Diện Rác Trong Tuần</h3>
+                        <div class="h-44 w-full">
+                            <canvas id="behaviorChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs space-y-2">
+            <p class="font-medium text-slate-300">Dự án Cuộc thi Khoa học Kỹ thuật (KHKT) - EcoAI School System</p>
+            <p>Hệ Thống Phân Loại Rác AI Real-Time Kết Hợp Thuyết Hích (Nudge Theory)</p>
+        </div>
+    </footer>
+
+    <!-- File JS riêng nằm ở dưới cùng -->
+    <script src="script.js"></script>
+</body>
+</html>
